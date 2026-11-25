@@ -1,28 +1,30 @@
 # dbf_protection
 
-Petit outil **Rust** pour retirer la protection des blocs Siemens stockés dans
-un fichier **DBF (dBase IV)** : il remet à `0` toute la colonne **`PASSWORD`**
-(`3` = protégé → `0` = non protégé) de la table `SUBBLK`.
+Outil **Rust** pour retirer la protection des blocs d'un **projet Siemens Step7**.
+Il remet à `0` la colonne **`PASSWORD`** (`3` = protégé → `0` = non protégé) de
+**tous** les fichiers `SUBBLK.DBF` du projet.
 
-## Interface graphique (Windows)
+## Fonctionnement (interface graphique, Windows)
 
 Double-cliquer sur **`dbf_protection.exe`** :
 
-1. un **explorateur de fichiers** s'ouvre (filtré sur les `.dbf`, nom par
-   défaut `SUBBLK.DBF`) — on choisit le fichier à traiter ;
-2. une fenêtre de **confirmation** prévient que le fichier va être modifié ;
-3. le fichier d'entrée est **écrasé sur place** par la version traitée ;
-4. une **copie de sécurité** `*.bak` de l'original est créée à côté, au cas où ;
-5. un message indique le nombre de protections remises à `0`.
+1. un **explorateur de fichiers** s'ouvre, filtré sur les **`*.S7P`** → on choisit
+   le fichier projet Step7 ;
+2. le programme part du dossier du projet et descend dans **`ombstx\offline`** ;
+3. il traite **tous les `SUBBLK.DBF`** trouvés récursivement là-dessous :
+   colonne `PASSWORD` remise à `0`, fichier **écrasé sur place**, **copie `.bak`**
+   de chaque original créée à côté ;
+4. une boîte de dialogue **« OK »** affiche le **nombre total de protections
+   enlevées** (et le nombre de fichiers traités).
 
-> La colonne traitée est **toujours `PASSWORD`** (figée).
-> L'éventuel fichier mémo associé (`.DBT`) n'est pas touché.
+> Colonne traitée : toujours **`PASSWORD`**. Fichiers mémo `.DBT` non touchés.
+> Les `SUBBLK.DBF` situés hors de `ombstx\offline` sont ignorés.
 
 L'exécutable prêt à l'emploi est dans **`dist/dbf_protection.exe`**.
 
 ## Compiler soi-même
 
-### Version Windows (depuis Windows)
+### Depuis Windows
 ```bash
 cargo build --release
 # -> target/release/dbf_protection.exe
@@ -35,20 +37,20 @@ rustup target add x86_64-pc-windows-gnu
 cargo build --release --target x86_64-pc-windows-gnu
 # -> target/x86_64-pc-windows-gnu/release/dbf_protection.exe
 ```
-(Le linker mingw est déjà configuré dans `.cargo/config.toml`.)
+(Linker mingw déjà configuré dans `.cargo/config.toml`.)
 
 ### Mode console (tests, sans écran)
 ```bash
-cargo run --no-default-features -- chemin/vers/FICHIER.DBF
+cargo run --no-default-features -- chemin/vers/Projet.S7P
 ```
 
 ## Organisation du code (pour apprendre Rust)
 
-- `src/dbf.rs` — lecture / écriture **bas niveau** du format DBF, sans aucune
-  dépendance externe (uniquement la bibliothèque standard). Commenté en français.
-- `src/main.rs` — l'interface : sélecteur de fichier et boîtes de dialogue
-  natives via la bibliothèque [`rfd`](https://crates.io/crates/rfd).
+- `src/dbf.rs` — lecture / écriture **bas niveau** du format DBF, sans dépendance
+  externe (bibliothèque standard uniquement). Commenté en français.
+- `src/main.rs` — l'interface : sélection du `.S7P`, parcours **récursif** de
+  `ombstx\offline`, traitement de chaque `SUBBLK.DBF`, puis boîte de dialogue
+  finale. Dialogues natifs via [`rfd`](https://crates.io/crates/rfd).
 
-Deux « features » Cargo :
-- `gui` (par défaut) : interface graphique ;
-- sans `gui` (`--no-default-features`) : mode console.
+Deux « features » Cargo : `gui` (par défaut, interface graphique) et le mode
+console (`--no-default-features`).
