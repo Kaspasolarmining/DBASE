@@ -1,13 +1,22 @@
 [package]
 name = "dbf_protection"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-# Projet d'apprentissage Rust : lecture/écriture bas niveau d'un fichier DBF (dBase IV).
-# Pas de dépendance externe -> tout est fait avec la bibliothèque standard.
+# Outil DBF (dBase IV) : remet à 0 la colonne de protection PASSWORD.
+# Interface graphique native via `rfd` (sélecteur de fichier + boîtes de dialogue).
 
 [[bin]]
 name = "dbf_protection"
 path = "src/main.rs"
 
+[features]
+default = ["gui"]
+# `gui` tire la dépendance `rfd` (optionnelle). Sans elle, mode console.
+gui = ["dep:rfd"]
+
+[dependencies]
+rfd = { version = "0.14.1", optional = true }
+
 [profile.release]
 opt-level = 2
+strip = true
